@@ -1,11 +1,12 @@
 `ifndef AES_MODEL__SV
 `define AES_MODEL__SV
-import "DPI-C" function void reference_model(input byte plain_text[16], input byte key[16], output byte cipher_text[16]);
+
+import "DPI-C" function void reference_model(input byte plain_text[], input byte key[], output byte cipher_text[]);
 class aes_model extends uvm_component;
 
     uvm_blocking_get_port#(aes_tr) port;
     uvm_analysis_port#(aes_tr) ap;
-
+	
     function new(string name = "aes_model", uvm_component parent);
         super.new(name, parent);
     endfunction
@@ -28,18 +29,25 @@ task aes_model::main_phase(uvm_phase phase);
         port.get(tr);
         calcu(tr, cipher_text);
         tr_to_scoreboard = new("tr_to_scoreboard");
-        tr_to_scoreboard.cipher_text = cipher_text;
+        tr_to_scoreboard.cipher_text = cipher_text ;
+        tr_to_scoreboard.plain_text = tr.plain_text;
+        tr_to_scoreboard.cipher_key = tr.cipher_key;
+        //tr.tmp[127:0] = tr.cipher_text;
+        tr_to_scoreboard.tmp = tr.tmp;
         ap.write(tr_to_scoreboard); 
     end
 endtask
 
 function void aes_model::calcu(ref aes_tr tr, ref logic [127:0] cipher_text);
+
     logic [127:0]key,plain_text;
     byte cipher_text_ref [0:15];
     byte plain_text_ref [0:15];
     byte key_ref [0:15];
     key = tr.cipher_key;
     plain_text = tr.plain_text;
+
+
     plain_text_ref[0]  = plain_text[127:120];
 	plain_text_ref[1]  = plain_text[119:112];
 	plain_text_ref[2]  = plain_text[111:104];
@@ -73,6 +81,7 @@ function void aes_model::calcu(ref aes_tr tr, ref logic [127:0] cipher_text);
 	key_ref[13] = key[23:16];
 	key_ref[14] = key[15:8];
 	key_ref[15] = key[7:0]; 
+	
     
     reference_model(plain_text_ref, key_ref, cipher_text_ref);
 

@@ -11,11 +11,13 @@ int Nk;
 // in - it is the array that holds the plain text to be encrypted.
 // out - it is the array that holds the output CipherText after encryption.
 // state - the array that holds the intermediate results during encryption.
-unsigned char in[16], out[16], state[4][4];
+unsigned char *in;
+unsigned char *out;
+unsigned char state[4][4];
 // The array that stores the round keys.
 unsigned char RoundKey[240];
 // The Key input to the AES Program
-unsigned char Key[32];
+unsigned char *Key;
 int getSBoxValue(int num)
 {
     int sbox[256] =   {
@@ -66,10 +68,10 @@ void KeyExpansion()
     // The first round key is the key itself.
     for(i=0;i<Nk;i++)
     {
-        RoundKey[i*4]=Key[i*4];
-        RoundKey[i*4+1]=Key[i*4+1];
-        RoundKey[i*4+2]=Key[i*4+2];
-        RoundKey[i*4+3]=Key[i*4+3];
+        RoundKey[i*4]=*(Key+i*4);
+        RoundKey[i*4+1]=*(Key+i*4+1);
+        RoundKey[i*4+2]=*(Key+i*4+2);
+        RoundKey[i*4+3]=*(Key+i*4+3);
     }
     // All other round keys are found from the previous round keys.
     while (i < (Nb * (Nr+1)))
@@ -198,7 +200,7 @@ void Cipher()
     {
         for(j=0;j<4;j++)
         {
-            state[j][i] = in[i*4 + j];
+            state[j][i] = *(in+i*4 + j);
         }
     }
     // Add the First round key to the state before starting the rounds.
@@ -220,42 +222,30 @@ void Cipher()
     AddRoundKey(Nr);
     // The encryption process is over.
     // Copy the state array to output array.
+	// 
+
     for(i=0;i<4;i++)
     {
         for(j=0;j<4;j++)
         {
-            out[i*4+j]=state[j][i];
+            //out[i*4+j]=state[j][i];
+			*(out+i*4+j) = state[j][i];
         }
     }
 }
-void reference_model(unsigned char plain_text[],unsigned char cipherkey[], unsigned char cipher_text[])
+
+void reference_model(const svOpenArrayHandle plain_text, const svOpenArrayHandle cipher_key, svOpenArrayHandle cipher_text)
 {
     int i;
     Nk = 4;
     Nr = 10;
-    //unsigned char temp[16] = {0x00  ,0x01  ,0x02  ,0x03  ,0x04  ,0x05  ,0x06  ,0x07  ,0x08  ,0x09  ,0x0a  ,0x0b  ,0x0c  ,0x0d  ,0x0e  ,0x0f};
-    //unsigned char plain_text[16]= {0x00  ,0x11  ,0x22  ,0x33  ,0x44  ,0x55  ,0x66  ,0x77  ,0x88  ,0x99  ,0xaa  ,0xbb  ,0xcc  ,0xdd  ,0xee  ,0xff};
-    // Copy the Key and PlainText
-    for(i=0;i<16;i++)
-    {
-        Key[i]=cipherkey[i];
-        in[i]=plain_text[i];
-    }
+	Key = (unsigned char *)svGetArrayPtr(cipher_key);
+	in  = (unsigned char *)svGetArrayPtr(plain_text);
+	out = (unsigned char *)svGetArrayPtr(cipher_text);
 
-    // The KeyExpansion routine must be called before encryption.
+	// The KeyExpansion routine must be called before encryption.
     KeyExpansion();
     // The next function call encrypts the PlainText with the Key using AES algorithm.
     Cipher();
-    // Output the encrypted text.
-    //printf("\nText after encryption:\n");
-    for(i=0;i<Nk*4;i++)
-    {
-        //printf("%02x ",plain_text[i]);
-    }
-    //printf("\n\n");
-    //return out;
-	for(i=0;i<16;i++)
-	    {
-		cipher_text[i]=out[i];
-	    }
 }
+

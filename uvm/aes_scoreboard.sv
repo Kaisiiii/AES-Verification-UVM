@@ -37,7 +37,8 @@ task aes_scoreboard::main_phase(uvm_phase phase);
 			act_port.get(get_act);
 			if(expect_queue.size() > 0)begin
 				tmp_tr = expect_queue.pop_front();
-				result = get_act.compare(tmp_tr);
+				result = get_act.do_com(tmp_tr);
+				//result = get_act.compare(tmp_tr);
 				if(result) begin
 					`uvm_info("aes_scoreboard","RESULT SATISFY",UVM_LOW);
 					$display("The expexct data is ");

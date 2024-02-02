@@ -1,18 +1,19 @@
 `include "uvm_macros.svh"
 import uvm_pkg::*;
  
-`include "aes_if.sv"
-`include "aes_tr.sv"
-`include "aes_seq.sv"
-`include "aes_sqr.sv"
-`include "aes_drv.sv"
-`include "aes_mon_i.sv"
-`include "aes_mon_o.sv"
-`include "aes_agent_i.sv"
-`include "aes_agent_o.sv"
-`include "aes_model.sv"
-`include "aes_scoreboard.sv"
-`include "aes_env.sv"
+`include "../uvm/dut_if.svh"
+`include "../uvmaes_tr.sv"
+`include "../uvmaes_seq.sv"
+`include "../uvmaes_sqr.sv"
+`include "../uvmaes_drv.sv"
+`include "../uvmaes_mon_i.sv"
+`include "../uvmaes_mon_o.sv"
+`include "../uvmaes_agent_i.sv"
+`include "../uvmaes_agent_o.sv"
+`include "../uvmaes_model.sv"
+`include "../uvmaes_scoreboard.sv"
+`include "../uvmaes_env.sv"
+`include "../uvmbase_test.sv"
 
 
 `timescale 1ns/1ps
@@ -21,7 +22,7 @@ module test;
 bit clk = 0;
 bit reset = 0; 
 
-aes_env env;
+base_test bt;
 	
 dut_if in_dif(
 	.clk(clk),
@@ -39,13 +40,13 @@ initial begin
 end
 
 initial begin
-    uvm_config_db#(virtual dut_if)::set(null, "env.i_agt.drv", "vif", in_dif);
-    uvm_config_db#(virtual dut_if)::set(null, "env.i_agt.mon", "mon_if", in_dif);
-    uvm_config_db#(virtual dut_if)::set(null, "env.o_agt.mon", "mon_if", in_dif);
+    uvm_config_db#(virtual dut_if)::set(null, "*.env.i_agt.drv", "vif", in_dif);
+    uvm_config_db#(virtual dut_if)::set(null, "*.env.i_agt.mon", "mon_if", in_dif);
+    uvm_config_db#(virtual dut_if)::set(null, "*.env.o_agt.mon", "mon_if", in_dif);
 end
 
 initial begin
-    env = new("env",null);
+    bt = new("bt",null);
     run_test();
     #500;
     $finish;

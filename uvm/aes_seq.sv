@@ -12,7 +12,7 @@ class aes_seq extends uvm_sequence#(aes_tr);
 endclass
 
 task aes_seq::body();
-	repeat(100)
+	repeat(10000)
     	`uvm_do(tr);
 endtask
 
